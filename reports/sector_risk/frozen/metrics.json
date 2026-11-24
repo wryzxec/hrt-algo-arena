@@ -1,0 +1,51 @@
+{
+  "sharpe": 4.269622154072944,
+  "mean_pnl": 4.559574091653382e-06,
+  "std_pnl": 1.6952552749025265e-05,
+  "n": 1500,
+  "model": "arena.models.sector_risk",
+  "seed": 42,
+  "split": "70/15/15",
+  "ddof": 0,
+  "git_sha": "f2568d94aebb351f669ff2e87f917bf074336957",
+  "utc": "2026-11-24T19:21:05.411258+00:00",
+  "selection_seconds": 2.382293666,
+  "runtime_seconds": 4.373597458000001,
+  "device": "arm64",
+  "python": "3.9.6",
+  "git_dirty": true,
+  "packages": {
+    "numpy": "2.0.2",
+    "pandas": "2.3.3",
+    "scipy": "1.13.1",
+    "scikit-learn": "1.6.1",
+    "pyarrow": "21.0.0"
+  },
+  "source_sha256": {
+    "src/arena/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "src/arena/data.py": "92bdeece8a90c3a1b3c0db7de2be1638b7170b7104957cadc3a9135b6a9dacc0",
+    "src/arena/evaluate.py": "07499b38e785e929710a93d751296695eea582b1ee2329c977e56d5c009fc4b5",
+    "src/arena/models/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "src/arena/models/events.py": "fb135def99593cd50c614182570ce8718d93ada7488f629f6635e7081496cba0",
+    "src/arena/models/sector_drift.py": "ee01f76ec0d7b553662c025219e94e69ad8aa65283de876b138b77b0dad5ca0f",
+    "src/arena/models/sector_risk.py": "6ed44fbb67431eca7482d5342791ea1f35f62699a80c491b1a8397f4a9337e6a",
+    "src/arena/validate.py": "0681c849fcec26c1531b69e9f4c507add3337660ad7057d807dec49d7e5af3d0"
+  },
+  "artifact_sha256": {
+    "validation.csv": "4f69e95d403e468f72d300985a5a12c2c1b718a0f1cd59df87aa41c0c9ec95cc",
+    "predictions.csv": "a463593bf10902f6b9eff98f08d3c035741409a60a11b9cf3624a7b8868f7101"
+  },
+  "train_n": 7000,
+  "selection_n": 1500,
+  "refit_n": 8500,
+  "oos_n": 10000,
+  "audit_scored": false,
+  "pnl_quantiles": {
+    "0": -5.0414629261819364e-05,
+    "0.01": -2.9641876621498017e-05,
+    "0.5": 8.815164484348982e-07,
+    "0.99": 6.895432998761506e-05,
+    "1": 0.00014929847155786377
+  },
+  "top_1pct_absolute_pnl_share": 0.08491434486096976
+}
