@@ -33,7 +33,8 @@ The frozen model standardizes historical price moves by session volatility befor
 Run from the repository root after installing its declared dependencies.
 
 ```sh
-python -m arena.evaluate --model arena.models.sector_drift --out reports/sector_drift
+python -m arena.evaluate --model arena.models.sector_drift --out artifacts/sector-drift-reproduction-01
+python -m arena.validate artifacts/sector-drift-reproduction-01/predictions.csv
 python reports/sector_drift/cross_validate.py
 python -m pytest -q
 ```
@@ -42,4 +43,4 @@ The common evaluator reports 4.22324 with population standard deviation. The sup
 
 The 8,500-session development refit produced 10,000 finite predictions with the exact unique official IDs. The official submission writer accepted the export. Independent loading and the repository evaluator produced byte-identical CSVs on the local Apple Silicon CPU. Fit, selection scoring, refit and export took about 2.5 seconds with the prefiltered loader and about 5 seconds with the shared evaluator. The local environment used Python 3.15. CI uses the repository's Python 3.11 environment.
 
-Model source commit `5abb2e3b1261f35f9ad3eb06ba4d73347a8f2eb9`. CSV SHA-256 `f9e2ef47c5e4547bca2e92d3a7045adb224d81e56ac9593d4e9b8f09cc5e5c51`. The coordinator owns the reserved 15% audit, final all-label refit and dashboard submission.
+Model source commit `5abb2e3b1261f35f9ad3eb06ba4d73347a8f2eb9`. CSV SHA-256 `f9e2ef47c5e4547bca2e92d3a7045adb224d81e56ac9593d4e9b8f09cc5e5c51`. The ten-bar duration originated in earlier project research. This candidate independently checked the impulse shape using only the 7,000 training sessions. Earlier repository-wide exploratory work used broader in-sample data, so the project cannot claim a pristine historical holdout for that inherited assumption. The coordinator owns the reserved 15% audit, final all-label refit and dashboard submission.
