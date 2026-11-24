@@ -1,0 +1,68 @@
+[
+ {
+  "mode": "recent",
+  "alpha": 1,
+  "sharpe": 1.665,
+  "sec": 0.7
+ },
+ {
+  "mode": "recent",
+  "alpha": 10,
+  "sharpe": 2.092,
+  "sec": 0.7
+ },
+ {
+  "mode": "recent",
+  "alpha": 100,
+  "sharpe": 2.762,
+  "sec": 0.7
+ },
+ {
+  "mode": "all",
+  "alpha": 1,
+  "sharpe": 0.533,
+  "sec": 1.0
+ },
+ {
+  "mode": "all",
+  "alpha": 10,
+  "sharpe": 0.672,
+  "sec": 0.9
+ },
+ {
+  "mode": "all",
+  "alpha": 100,
+  "sharpe": 0.873,
+  "sec": 0.9
+ },
+ {
+  "mode": "recent",
+  "alpha": 300,
+  "sharpe": 3.056,
+  "note": "beyond issue grid"
+ },
+ {
+  "mode": "recent",
+  "alpha": 1000,
+  "sharpe": 3.27,
+  "note": "beyond issue grid"
+ },
+ {
+  "mode": "recent",
+  "alpha": 3000,
+  "sharpe": 3.337,
+  "note": "beyond issue grid"
+ },
+ {
+  "mode": "recent",
+  "alpha": 10000,
+  "sharpe": 3.218,
+  "note": "beyond issue grid"
+ },
+ {
+  "mode": "recent",
+  "alpha": 30000,
+  "sharpe": 3.006,
+  "note": "beyond issue grid"
+ }
+]

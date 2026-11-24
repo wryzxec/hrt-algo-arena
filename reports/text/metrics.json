@@ -1,0 +1,11 @@
+{
+  "sharpe": 3.3374781934488778,
+  "mean_pnl": 3.0660676671395846e-06,
+  "std_pnl": 1.4583560544731807e-05,
+  "n": 1500,
+  "model": "arena.models.text",
+  "seed": 42,
+  "split": "70/15/15",
+  "ddof": 0,
+  "git_sha": "36aedd3c730f29c48ccac87e26569e6f2b265bf3"
+}
