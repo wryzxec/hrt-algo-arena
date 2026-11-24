@@ -10,6 +10,7 @@ and [assigned tasks](docs/TASKS.md).
 git pull --ff-only
 python3 -m venv .venv
 source .venv/bin/activate
+python -m pip install --upgrade pip
 python -m pip install -e '.[dev]'
 python -m pytest -q
 ```
