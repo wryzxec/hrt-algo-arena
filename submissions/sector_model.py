@@ -36,7 +36,8 @@ from scipy.sparse.linalg import lsqr
 from sklearn.cluster import SpectralClustering
 from sklearn.linear_model import Ridge
 
-DATA = Path(__file__).resolve().parent.parent / "data"
+_ROOT = Path(__file__).resolve().parent.parent
+DATA = _ROOT / "data" if (_ROOT / "data" / "ins_bars.parquet").exists() else _ROOT   # repo keeps parquet in root
 
 HALF = 49                       # trade at the close of this bar
 HORIZON = 10                    # hold until the close of bar 59
