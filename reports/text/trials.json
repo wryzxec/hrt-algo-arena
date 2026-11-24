@@ -76,5 +76,11 @@
   "alpha": 3000,
   "sharpe": 3.441,
   "note": "/ close-close vol (49 bars)"
+ },
+ {
+  "mode": "hybrid",
+  "alpha": 3000,
+  "sharpe": 3.654,
+  "note": "final: template drift (shrink=100) + TF-IDF (w=0.4) / Garman-Klass vol"
  }
 ]

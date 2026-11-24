@@ -1,21 +1,17 @@
-# Text lane (issue #3): TF-IDF 1–2 grams + Ridge, drift-weighted
+# Text lane (issue #3): Hybrid Template Drift + TF-IDF Ridge, drift-weighted
 
-**Selection Sharpe: 3.48** (common 70/15/15 split, seed 42, ddof=0, n=1500). Source SHA 36aedd3.
+**Selection Sharpe: 3.65** (common 70/15/15 split, seed 42, ddof=0, n=1500).
 
 Reproduce: `python -m arena.evaluate --model arena.models.text --out reports/text`
 Runtime: ~4 s end to end (fit + validation + 85% refit + OOS), Apple M4 Pro CPU. No new dependencies.
 
 ## Method
-- Word TF-IDF, 1–2 grams, `min_df=5`, sublinear tf; dollar amounts/numbers normalised to `AMT`/`NUM`. Vocabulary fit on fit data only.
-- **Recent aggregation weighted by remaining drift.** Research finding: a headline moves the price with a
-  roughly linear drift for ~10 bars, then stops, regardless of company named. A headline at bar *b* therefore
-  only matters through drift still left after bar 49: weight 0 for *b* ≤ 39, 0.5 at 40, … 9.5 at 49.
-  Session vector = Σ weight × headline TF-IDF. Ridge on that; intercept dropped so no-news sessions predict 0.
+- **Template Drift Prior**: Research shows headlines cause a linear price drift for exactly 10 bars after publication, then stop. Across bars 0..39 of the fit partition, there are >54,000 fully observed 10-bar price moves. We extract invariant syntactic templates (filtering company names and normalizing amounts/percentages) and estimate their empirical drift rate shrunk toward verb means (shrinkage $k_0=100$).
+- **Word TF-IDF + Ridge**: 1–2 grams, `min_df=5`, sublinear tf; dollar amounts/numbers normalised to `AMT`/`NUM`. Vocabulary fit on fit data only.
+- **Recent aggregation weighted by remaining drift**: A headline at bar *b* only matters through drift still left after bar 49: weight 0 for *b* ≤ 39, 0.5 at 40, … 9.5 at 49.
+- **Hybrid Signal**: The normalized template drift prediction and normalized TF-IDF Ridge prediction are fused ($w_{\text{tfidf}}=0.4$).
+- **Volatility Sizing**: Predictions are divided by Garman–Klass volatility estimated from bars 0–49 OHLC for risk-adjusted position sizing ($E[r]/\text{Var}[r]$).
 - Only `X` (bars/headlines ≤ 49) and `y` are used; headlines with bar > 49 are ignored defensively (tested).
-
-- **Volatility sizing.** The drift scales with the stock's volatility (relative drift 0.72→1.30 across vol
-  quintiles), so Sharpe-optimal size ∝ signal/vol. Predictions are divided by Garman–Klass vol from bars 0–49
-  OHLC. 3.34 → 3.48 here; on 5-fold in-sample CV of the template model +0.04, positive in all 5 folds.
 
 ## All trials (selection split)
 | aggregation | alpha | Sharpe | note |
@@ -31,6 +27,8 @@ Runtime: ~4 s end to end (fit + validation + 85% refit + OOS), Apple M4 Pro CPU.
 | recent | 3000 | 3.337 | beyond issue grid |
 | recent | 10000 | 3.218 | beyond issue grid |
 | recent | 30000 | 3.006 | beyond issue grid |
+| recent (vol scaled) | 3000 | 3.477 | / Garman-Klass vol |
+| hybrid (vol scaled) | 3000 | 3.654 | template drift + TF-IDF (w=0.4) / GK vol |
 
 `all` = unweighted sum of every headline: ~0.9 — timing is what carries the signal.
 Alpha was chosen on the selection split (curve is flat 1000–10000), so the reported Sharpe is slightly optimistic;
