@@ -29,29 +29,56 @@ def candidates(model, X):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--calibration", action="store_true")
+    parser.add_argument("--residual", action="store_true")
+    parser.add_argument("--sizing", action="store_true")
     parser.add_argument("--out", default="reports/sector_risk")
     args = parser.parse_args()
     started = time.perf_counter()
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
-    filename = "calibration_cv.json" if args.calibration else "cv.json"
+    filename = "sizing_cv.json" if args.sizing else ("residual_cv.json" if args.residual else ("calibration_cv.json" if args.calibration else "cv.json"))
     if (out / filename).exists():
         raise RuntimeError("Do not overwrite prior experiments")
     X, y = load_sessions()
     ids = partitions(X.index)[0]
     X, y = X.loc[ids], y.loc[ids]
-    if args.calibration:
+    if args.sizing:
+        from arena.models.sector_risk import SectorRisk
+        predictions, folds = {}, {}
+        for fit, test in KFold(4, shuffle=True, random_state=42).split(X):
+            model = SectorRisk().fit(X.iloc[fit], y.iloc[fit])
+            features, raw, _ = model._state(X.iloc[test])
+            mu = raw + model.calibration.predict(features / model.scale)
+            _, ranges = price_arrays(X.iloc[test])
+            vol = np.clip(ranges / model.typical_range, .45, 2.)
+            for power in (2., 2.5, 3.):
+                for coefficient in (1., 2., 4., 8.):
+                    name = f"power{power}_coefficient{coefficient}"
+                    pred = mu / (vol**power + coefficient * mu**2 / (10 * model.noise**2))
+                    predictions.setdefault(name, np.zeros(len(X)))[test] = pred
+                    folds.setdefault(name, []).append(score(y.iloc[test], pred)["sharpe"])
+        results = {name: {"pooled": score(y, pred)["sharpe"], "folds": folds[name]}
+                   for name, pred in predictions.items()}
+        report = {"results": results, "winner": max(results, key=lambda k: results[k]["pooled"]),
+                  "selection_scored": False, "audit_scored": False, "train_n": len(X),
+                  "runtime_seconds": time.perf_counter()-started}
+        (out / filename).write_text(json.dumps(report, indent=2)+"\n")
+        print(json.dumps(report, indent=2))
+        return
+    if args.calibration or args.residual:
         from arena.models.sector_risk import SectorRisk
         results = {}
-        for power in (0., 1., 2.):
-            for alpha in (.01, .1, 1.):
+        for variant in ((0, 1, 2) if args.residual else (0., 1., 2.)):
+            for alpha in ((.001, .01, .1) if args.residual else (.01, .1, 1.)):
                 pred, folds = np.zeros(len(X)), []
                 for fit, test in KFold(4, shuffle=True, random_state=42).split(X):
-                    model = SectorRisk(alpha, power).fit(X.iloc[fit], y.iloc[fit])
+                    model = SectorRisk(alpha, 2. if args.residual else variant,
+                                       variant if args.residual else 0).fit(X.iloc[fit], y.iloc[fit])
                     pred[test] = model.predict(X.iloc[test])
                     folds.append(score(y.iloc[test], pred[test])["sharpe"])
-                name = f"alpha{alpha}_power{power}"
+                name = f"alpha{alpha}_variant{variant}" if args.residual else f"alpha{alpha}_power{variant}"
                 results[name] = {"pooled": score(y, pred)["sharpe"], "folds": folds}
+                print(name, results[name], flush=True)
         report = {"results": results, "winner": max(results, key=lambda k: results[k]["pooled"]),
                   "selection_scored": False, "audit_scored": False, "train_n": len(X),
                   "runtime_seconds": time.perf_counter()-started}

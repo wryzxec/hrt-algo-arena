@@ -1,0 +1,52 @@
+{
+  "sharpe": 4.2715323822470745,
+  "mean_pnl": 4.607336466838179e-06,
+  "std_pnl": 1.712247325804923e-05,
+  "n": 1500,
+  "model": "arena.models.sector_risk",
+  "seed": 42,
+  "split": "70/15/15",
+  "ddof": 0,
+  "git_sha": "0940558f7017a7521100b62b2c3d7ec3b87e6d1c",
+  "utc": "2026-11-24T19:38:46.501898+00:00",
+  "selection_seconds": 2.338378375,
+  "runtime_seconds": 4.333781291,
+  "device": "arm64",
+  "python": "3.9.6",
+  "git_dirty": true,
+  "packages": {
+    "numpy": "2.0.2",
+    "pandas": "2.3.3",
+    "scipy": "1.13.1",
+    "scikit-learn": "1.6.1",
+    "pyarrow": "21.0.0"
+  },
+  "source_sha256": {
+    "src/arena/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "src/arena/data.py": "92bdeece8a90c3a1b3c0db7de2be1638b7170b7104957cadc3a9135b6a9dacc0",
+    "src/arena/evaluate.py": "07499b38e785e929710a93d751296695eea582b1ee2329c977e56d5c009fc4b5",
+    "src/arena/models/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "src/arena/models/events.py": "fb135def99593cd50c614182570ce8718d93ada7488f629f6635e7081496cba0",
+    "src/arena/models/sector_drift.py": "ee01f76ec0d7b553662c025219e94e69ad8aa65283de876b138b77b0dad5ca0f",
+    "src/arena/models/sector_risk.py": "fcfcbd92e1c2117a39cfe6f2b3e935289a47418a6e7ef5669538d524d04a0efd",
+    "src/arena/models/text.py": "1b37e92edb0cd429765be5fb9d6495213f0bbeddb8d0bf0e704b4abbe1f84bd3",
+    "src/arena/validate.py": "0681c849fcec26c1531b69e9f4c507add3337660ad7057d807dec49d7e5af3d0"
+  },
+  "artifact_sha256": {
+    "validation.csv": "5085657a0030e068a15caa8497edb1e051cd0bfb137ebc4e74353fd15661271f",
+    "predictions.csv": "caa925693a93599ce70da17e8e9a5b209aa092900e30f94d4d16d6b93a97f94e"
+  },
+  "train_n": 7000,
+  "selection_n": 1500,
+  "refit_n": 8500,
+  "oos_n": 10000,
+  "audit_scored": false,
+  "pnl_quantiles": {
+    "0": -5.2630032237838554e-05,
+    "0.01": -3.137723538223735e-05,
+    "0.5": 8.936212231474148e-07,
+    "0.99": 6.98036286612391e-05,
+    "1": 0.00014944189640553806
+  },
+  "top_1pct_absolute_pnl_share": 0.08350154963972715
+}
