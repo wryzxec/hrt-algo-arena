@@ -7,6 +7,11 @@ the part of its drift that is still left after bar 49. Each headline's TF-IDF ve
 weighted by that remaining-drift weight (0 for b <= 39, 0.5 at b = 40, rising to 9.5 at b = 49) and
 summed per session ("recent" aggregation). An unweighted "all" aggregate is available too.
 Numbers are normalised so "$500M" / "7%" share tokens. Vocabulary is fit on fit data only.
+
+Position sizing: the news drift scales with the stock's volatility, and the Sharpe-optimal
+position is E[r]/Var[r] ~ (signal * vol) / vol^2, so predictions are divided by a
+Garman-Klass volatility estimate from bars 0-49 OHLC (better forecaster of next-10-bar vol
+than close-to-close). In-sample 5-fold CV: +0.04 Sharpe, positive in all folds.
 """
 import re
 
@@ -32,9 +37,17 @@ def _norm(h):
     return re.sub(r"\d+(\.\d+)?%?", " NUM ", h)
 
 
+def gk_vol(X):
+    """Garman-Klass volatility per session from bars 0..49 OHLC (floored to stay finite)."""
+    O, H, L, C = (np.log(np.vstack([np.asarray(v, dtype=float)[:HALF + 1] for v in X[c]]))
+                  for c in ("open", "high", "low", "close"))
+    v = np.sqrt(np.clip((0.5 * (H - L) ** 2 - (2 * np.log(2) - 1) * (C - O) ** 2).mean(1), 0, None))
+    return np.maximum(v, 1e-4)
+
+
 class TextModel:
-    def __init__(self, alpha=10.0, mode="recent"):
-        self.alpha, self.mode = alpha, mode
+    def __init__(self, alpha=10.0, mode="recent", vol_scale=True):
+        self.alpha, self.mode, self.vol_scale = alpha, mode, vol_scale
 
     def _design(self, X):
         texts, rows, weights = [], [], []
@@ -60,6 +73,8 @@ class TextModel:
 
     def predict(self, X):
         p = self.ridge.predict(self._design(X)) - self.ridge.intercept_  # no-news sessions -> 0
+        if self.vol_scale:
+            p = p / gk_vol(X)
         return np.nan_to_num(np.asarray(p, dtype=float))
 
 

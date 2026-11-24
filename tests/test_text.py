@@ -9,7 +9,7 @@ def _toy(n=40, seed=0):
     rows, y = [], []
     for i in range(n):
         g = i % 2 == 0
-        rows.append(dict(open=[1.0] * 50, high=[1.0] * 50, low=[1.0] * 50, close=[1.0] * 50,
+        rows.append(dict(open=[1.0] * 50, high=[1.002] * 50, low=[0.998] * 50, close=[1.0] * 50,
                          headlines=[good if g else bad] * 5, headline_bars=[45, 46, 47, 48, 49]))
         y.append((0.01 if g else -0.01) + rng.normal(0, 1e-3))
     return pd.DataFrame(rows), pd.Series(y)
@@ -43,3 +43,14 @@ def test_future_headlines_ignored():
     Z = X.iloc[:1].copy()
     Z.at[Z.index[0], "headline_bars"] = [55, 56, 57, 58, 59]
     assert np.allclose(m.predict(Z), 0.0)
+
+
+def test_vol_scaling_divides_by_volatility():
+    from arena.models.text import gk_vol
+    X, y = _toy()
+    m = build().fit(X, y)
+    Z = X.iloc[:2].copy()
+    Z.at[Z.index[1], "high"] = [1.004] * 50; Z.at[Z.index[1], "low"] = [0.996] * 50
+    Z.at[Z.index[1], "headlines"] = Z.at[Z.index[0], "headlines"]
+    p = m.predict(Z)
+    assert np.isclose(p[0] / p[1], gk_vol(Z)[1] / gk_vol(Z)[0])

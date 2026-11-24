@@ -1,6 +1,6 @@
 # Text lane (issue #3): TF-IDF 1–2 grams + Ridge, drift-weighted
 
-**Selection Sharpe: 3.34** (common 70/15/15 split, seed 42, ddof=0, n=1500). Source SHA 36aedd3.
+**Selection Sharpe: 3.48** (common 70/15/15 split, seed 42, ddof=0, n=1500). Source SHA 36aedd3.
 
 Reproduce: `python -m arena.evaluate --model arena.models.text --out reports/text`
 Runtime: ~4 s end to end (fit + validation + 85% refit + OOS), Apple M4 Pro CPU. No new dependencies.
@@ -12,6 +12,10 @@ Runtime: ~4 s end to end (fit + validation + 85% refit + OOS), Apple M4 Pro CPU.
   only matters through drift still left after bar 49: weight 0 for *b* ≤ 39, 0.5 at 40, … 9.5 at 49.
   Session vector = Σ weight × headline TF-IDF. Ridge on that; intercept dropped so no-news sessions predict 0.
 - Only `X` (bars/headlines ≤ 49) and `y` are used; headlines with bar > 49 are ignored defensively (tested).
+
+- **Volatility sizing.** The drift scales with the stock's volatility (relative drift 0.72→1.30 across vol
+  quintiles), so Sharpe-optimal size ∝ signal/vol. Predictions are divided by Garman–Klass vol from bars 0–49
+  OHLC. 3.34 → 3.48 here; on 5-fold in-sample CV of the template model +0.04, positive in all 5 folds.
 
 ## All trials (selection split)
 | aggregation | alpha | Sharpe | note |

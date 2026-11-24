@@ -64,5 +64,17 @@
   "alpha": 30000,
   "sharpe": 3.006,
   "note": "beyond issue grid"
+ },
+ {
+  "mode": "recent",
+  "alpha": 3000,
+  "sharpe": 3.477,
+  "note": "final: / Garman-Klass vol"
+ },
+ {
+  "mode": "recent",
+  "alpha": 3000,
+  "sharpe": 3.441,
+  "note": "/ close-close vol (49 bars)"
  }
 ]
