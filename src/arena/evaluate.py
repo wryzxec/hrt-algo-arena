@@ -4,6 +4,7 @@ import importlib.metadata
 import json
 from pathlib import Path
 import subprocess
+import sys
 import platform
 import time
 from datetime import datetime, timezone
@@ -11,6 +12,21 @@ import numpy as np
 import pandas as pd
 from arena.data import load_sessions, partitions
 from arena.validate import file_sha256, validate_predictions
+
+def imported_source_provenance(model_module):
+    """Identify imported model and harness files independently of the working directory."""
+    modules = {name: module for name, module in tuple(sys.modules.items())
+               if name == "arena" or name.startswith("arena.")}
+    modules["arena.evaluate"] = sys.modules[__name__]
+    modules[model_module.__name__] = model_module
+    sources = {}
+    for name, module in sorted(modules.items()):
+        filename = getattr(module, "__file__", None)
+        if filename:
+            path = Path(filename).resolve()
+            if path.is_file():
+                sources[name] = {"path": str(path), "sha256": file_sha256(path)}
+    return sources
 
 def score(y, pred):
     y, pred = np.asarray(y,dtype=float), np.asarray(pred,dtype=float)
@@ -68,6 +84,8 @@ def main():
         git_dirty=bool(subprocess.check_output(["git", "status", "--porcelain", "--untracked-files=normal", "--", "src", "pyproject.toml"], text=True).strip()),
         packages={name: importlib.metadata.version(name) for name in ("numpy", "pandas", "scipy", "scikit-learn", "pyarrow")},
         source_sha256={str(path): file_sha256(path) for path in sorted(Path("src/arena").rglob("*.py"))},
+        git_context_directory=str(Path.cwd().resolve()),
+        imported_source=imported_source_provenance(module),
         artifact_sha256={name: file_sha256(out/name) for name in ("validation.csv", "predictions.csv")},
         train_n=len(train), selection_n=len(valid), refit_n=len(dev), oos_n=len(oos),
         audit_scored=False,
