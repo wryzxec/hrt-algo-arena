@@ -1,25 +1,40 @@
 import argparse
 import importlib
+import importlib.metadata
 import json
 from pathlib import Path
 import subprocess
+import platform
+import time
+from datetime import datetime, timezone
 import numpy as np
 import pandas as pd
 from arena.data import load_sessions, partitions
+from arena.validate import file_sha256, validate_predictions
 
 def score(y, pred):
     y, pred = np.asarray(y,dtype=float), np.asarray(pred,dtype=float)
-    if y.ndim != 1 or pred.shape != y.shape or not np.isfinite(pred).all() or not np.isfinite(y).all():
+    if y.ndim != 1 or not len(y) or pred.shape != y.shape or not np.isfinite(pred).all() or not np.isfinite(y).all():
         raise ValueError("Expected aligned finite 1D arrays")
-    pnl = y*pred
+    with np.errstate(over="ignore", invalid="ignore"):
+        pnl = y*pred
+    if not np.isfinite(pnl).all():
+        raise ValueError("Prediction times return must be finite")
     sd = pnl.std(ddof=0)
+    if not np.isfinite(sd):
+        raise ValueError("PnL standard deviation overflowed")
     return {"sharpe": float(np.sqrt(252)*pnl.mean()/sd) if sd else 0., "mean_pnl":float(pnl.mean()), "std_pnl":float(sd), "n":len(y)}
 
 def main():
+    started = time.perf_counter()
     p=argparse.ArgumentParser()
     p.add_argument("--model",required=True)
     p.add_argument("--out",required=True)
     args=p.parse_args()
+    out=Path(args.out); out.mkdir(parents=True,exist_ok=True)
+    # New output directories preserve the history of trials and avoid mixed runs.
+    if any((out / name).exists() for name in ("validation.csv", "predictions.csv", "metrics.json")):
+        p.error("Report files already exist; use a new --out directory for each run")
     X,y=load_sessions()
     train,valid,audit=partitions(X.index)
     module=importlib.import_module(args.model)
@@ -27,17 +42,39 @@ def main():
     model.fit(X.loc[train],y.loc[train])
     pred=np.asarray(model.predict(X.loc[valid]),dtype=float)
     metrics=score(y.loc[valid],pred)
-    out=Path(args.out); out.mkdir(parents=True,exist_ok=True)
-    pd.DataFrame({"session":valid,"pred":pred}).to_csv(out/"validation.csv",index=False)
+    selection_seconds = time.perf_counter() - started
+    validation = pd.DataFrame({"session":valid,"pred":pred})
+    validate_predictions(validation, valid, "session")
     metrics.update(model=args.model,seed=42,split="70/15/15",ddof=0,git_sha=subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip())
-    (out/"metrics.json").write_text(json.dumps(metrics,indent=2)+"\n")
-    print(json.dumps(metrics,indent=2))
     model=module.build()
     dev=np.concatenate([train,valid])
     model.fit(X.loc[dev],y.loc[dev])
     oos,_=load_sessions("oos")
     predictions=np.asarray(model.predict(oos),dtype=float)
     if predictions.shape != (len(oos),) or not np.isfinite(predictions).all(): raise ValueError("Invalid submission")
-    pd.DataFrame({"headline_id":oos.index,"pred":predictions}).to_csv(out/"predictions.csv",index=False)
+    submission = pd.DataFrame({"headline_id":oos.index,"pred":predictions})
+    validate_predictions(submission, oos.index)
+    validation.to_csv(out/"validation.csv",index=False)
+    submission.to_csv(out/"predictions.csv",index=False)
+    # Validate serialized bytes, not just the in-memory frame.
+    validate_predictions(pd.read_csv(out/"predictions.csv"), oos.index)
+    pnl = y.loc[valid].to_numpy() * pred
+    absolute_pnl = np.abs(pnl)
+    top_count = max(1, int(np.ceil(.01 * len(pnl))))
+    metrics.update(
+        utc=datetime.now(timezone.utc).isoformat(),
+        selection_seconds=selection_seconds, runtime_seconds=time.perf_counter()-started,
+        device=platform.machine(), python=platform.python_version(),
+        git_dirty=bool(subprocess.check_output(["git", "status", "--porcelain", "--untracked-files=normal", "--", "src", "pyproject.toml"], text=True).strip()),
+        packages={name: importlib.metadata.version(name) for name in ("numpy", "pandas", "scipy", "scikit-learn", "pyarrow")},
+        source_sha256={str(path): file_sha256(path) for path in sorted(Path("src/arena").rglob("*.py"))},
+        artifact_sha256={name: file_sha256(out/name) for name in ("validation.csv", "predictions.csv")},
+        train_n=len(train), selection_n=len(valid), refit_n=len(dev), oos_n=len(oos),
+        audit_scored=False,
+        pnl_quantiles={str(q):float(np.quantile(pnl,q)) for q in (0,.01,.5,.99,1)},
+        top_1pct_absolute_pnl_share=float(np.sort(absolute_pnl)[-top_count:].sum()/absolute_pnl.sum()) if absolute_pnl.sum() else 0.,
+    )
+    (out/"metrics.json").write_text(json.dumps(metrics,indent=2,allow_nan=False)+"\n")
+    print(json.dumps(metrics,indent=2,allow_nan=False))
 
 if __name__ == "__main__": main()
