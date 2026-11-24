@@ -46,4 +46,5 @@ Inspiration:
 
 Notebook supplies current spec. Authenticated challenge page was inaccessible to browser tool.
 Verify dashboard deadline, remaining uploads, external model rules and official std convention.
-No measured model performance yet at setup.
+Initial setup had no model measurements. Update: event baseline independently reproduced at
+selection Sharpe 3.12219; ready for immediate first upload. Dashboard score remains unknown.
