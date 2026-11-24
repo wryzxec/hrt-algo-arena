@@ -1,0 +1,11 @@
+{
+  "sharpe": 4.223243470924593,
+  "mean_pnl": 4.348646672034498e-06,
+  "std_pnl": 1.6345878772705086e-05,
+  "n": 1500,
+  "model": "arena.models.sector_drift",
+  "seed": 42,
+  "split": "70/15/15",
+  "ddof": 0,
+  "git_sha": "5abb2e3b1261f35f9ad3eb06ba4d73347a8f2eb9"
+}
