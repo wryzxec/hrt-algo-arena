@@ -19,3 +19,14 @@ Models live in `src/arena/models/`; small results in `reports/<lane>/`; ignored 
 and caches in `artifacts/`. Root parquet files/notebook are read-only inputs.
 Official sessions.py is absent; local loader implements the notebook's documented inputs.
 Dashboard rules, deadline, remaining quota and official std convention need verification.
+
+Reproduce a lane into a new directory to preserve previous results:
+
+```sh
+python -m arena.evaluate --model arena.models.events --out artifacts/events-reproduction-01
+python -m arena.validate artifacts/events-reproduction-01/predictions.csv
+```
+
+The report records source/artifact hashes, runtime, environment and selection PnL
+concentration. The CSV check enforces the expected 10,000 session IDs and prints its
+SHA256; dashboard quota/deadline and actual upload receipt remain separate requirements.

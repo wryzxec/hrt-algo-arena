@@ -14,11 +14,18 @@ first two only. Coordinator opens audit once after candidate freeze. This assume
 independent synthetic sessions; examine regime effects on development data if needed.
 
 Run `python -m arena.evaluate --model arena.models.text --out reports/text` (replace lane).
+Use a fresh directory for repeats, e.g. `--out artifacts/text-reproduction-01`; existing
+report files are rejected so previous trials cannot be silently overwritten.
 Produces validation.csv keyed by session, metrics.json, and predictions.csv refitted on
 85% development data. Audit remains untouched. Final all-label refit is coordinator work.
+Metrics include stage/total runtime, software versions, source hashes, dirty-source status,
+artifact hashes and selection PnL tails/concentration. `audit_scored=false` describes this
+evaluation run only; it cannot certify that prior exploratory work left audit labels unseen.
 Report runtime, device, every trial, dependencies, source SHA and limitations in lane README.
 Worker scope: their module, tests/test_<lane>.py, reports/<lane>/; optional lane requirements.
 Large weights go in ignored artifacts/. Submit small predictions CSVs with the PR.
 
 Submission columns exactly headline_id,pred; headline_id is session number, one per OOS
 session, no dataframe index. Local Sharpe uses ddof=0 pending official helper verification.
+`python -m arena.validate <submission.csv>` checks exact integer IDs, schema and finite
+predictions against the 10,000 expected OOS sessions, then prints the file's SHA256.

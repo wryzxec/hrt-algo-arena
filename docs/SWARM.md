@@ -6,12 +6,18 @@ and only after old owner acknowledges stopping. One agent per account/issue at a
 
 1. Pull main, read AGENTS.md, install/test README setup.
 2. `gh issue list --assignee @me --state open`; work only state:ready tasks with merged dependencies.
-3. Comment START with branch, ETA and hardware. Replace state:ready with state:working.
+3. Comment START with branch, ETA, hardware and active agent/thread identifier. Replace
+   state:ready with state:working immediately, including for coordinator work. Before
+   starting another local agent, check active threads and worktree status. An idle thread
+   does not transfer account ownership; continuation by the same owner must be recorded.
 4. Branch agent/<login>/issue-<number>-<slug>. Stay within assigned file scope.
 5. Post progress at T+10/T+20; report blockers immediately.
 6. Push branch; fetch origin and merge origin/main before PR. Never discard teammate changes.
 7. PR must link issue and include command, measured Sharpe, runtime and report artifacts.
    Mark state:review. Coordinator pulls newest main and merges passing PRs sequentially.
+   Check CI on the latest PR head, not a previous passing revision. Confirm that exploratory
+   trials and cross-validation excluded the fixed audit IDs; a final evaluator using the
+   correct split cannot undo audit exposure during earlier research. Disclose any exposure.
 
 Comments are not atomic claims. Preassignment is the ownership lock; unassigned agents
 request a disjoint issue. Dependencies unblock only after implementation PR merges and
@@ -20,6 +26,12 @@ If optional work is skipped, coordinator records fallback explicitly before unbl
 These are coordination rules, not enforced branch protection. No shared-file edits by workers:
 coordinator owns dependencies, loader/evaluator, strategy, task board and submission ledger.
 If pull cannot fast-forward, preserve work and report; no resets or force pushes.
+
+Use a fresh evaluation output directory for every run, including reproductions. The evaluator
+rejects existing report files, records source and artifact hashes, and marks uncommitted
+source explicitly. Compare CSVs by session ID. Before any upload run
+`python -m arena.validate reports/<lane>/predictions.csv` and put its SHA256 in the ledger.
+Validation does not reserve an attempt or establish dashboard access or remaining quota.
 
 Coordinator serializes uploads in docs/SUBMISSIONS.md with reserved attempt, source SHA,
 CSV hash and result. Check quota first. Interrupted upload is consumed until dashboard
