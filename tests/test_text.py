@@ -54,3 +54,10 @@ def test_vol_scaling_divides_by_volatility():
     Z.at[Z.index[1], "headlines"] = Z.at[Z.index[0], "headlines"]
     p = m.predict(Z)
     assert np.isclose(p[0] / p[1], gk_vol(Z)[1] / gk_vol(Z)[0])
+
+
+def test_template_drift_learned():
+    from arena.models.text import _extract_tmpl
+    assert _extract_tmpl("Yorval Partners secures $500M contract with a major logistics provider") == "secures $X contract with a major logistics provider"
+    assert _extract_tmpl("Ilval Financial Co reports 12.5% increase in revenue") == "reports N% increase in revenue"
+
