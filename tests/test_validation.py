@@ -46,3 +46,27 @@ def test_evaluation_preserves_existing_report(tmp_path, monkeypatch):
     assert error.value.code == 2
     assert previous.read_text() == '{"sharpe": 3.12}\n'
     assert list(tmp_path.iterdir()) == [previous]
+
+
+def test_provenance_tracks_imported_model_outside_working_directory(tmp_path, monkeypatch):
+    import hashlib
+    import importlib.util
+    from arena.evaluate import imported_source_provenance
+
+    actual = tmp_path / "external" / "candidate.py"
+    actual.parent.mkdir()
+    actual.write_text("CONFIGURATION = 42\n")
+    spec = importlib.util.spec_from_file_location("external_candidate", actual)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    unrelated = tmp_path / "checkout"
+    unrelated.mkdir()
+    (unrelated / "candidate.py").write_text("CONFIGURATION = 999\n")
+    monkeypatch.chdir(unrelated)
+
+    sources = imported_source_provenance(module)
+    assert sources["external_candidate"] == {
+        "path": str(actual.resolve()),
+        "sha256": hashlib.sha256(actual.read_bytes()).hexdigest(),
+    }
+    assert "arena.evaluate" in sources
